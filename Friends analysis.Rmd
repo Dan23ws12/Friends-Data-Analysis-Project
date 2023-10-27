@@ -1,0 +1,92 @@
+---
+title: "Testing whether average number of friends differ by sex"
+author: "Daniel Oyeleye"
+date: "2023-10-12"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This markdown file is a report of some sorts on the results of simple data analysis.
+The Friends.csv file has 2 variables, gender and number of friends of each experimental unit.
+
+I will begin by importing the necessary libraries.
+```{r message=FALSE,warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(mosaic)
+```
+I calculated mean, median and so on for number of friends, ran a t-test and ANOVA to test whether
+the difference in number of friends between genders is statistically significant.
+```{r Friends}
+summary(Friends)
+t.test(friends ~ gender, data=Friends)
+summary(aov(friends ~ gender, data = Friends))
+
+```
+t test at 95% confidence level (0.05 significance level) testing if population mean is 2
+```{r gender_anova}
+t.test(Friends$friends, mu=2)
+```
+
+Results show that the difference between the number of friends by gender on 
+average was statistically significant.
+Now which gender has more friends on average? 
+Lets run a t-test to find out
+```{r}
+t.test(friends ~ gender, data = Friends, alternative = "greater")
+```
+The results show that number of friends of male subjects is greater than the 
+number of friends of female units.
+
+The prior analysis was done using our entire sample would the results change if
+we used a portion of our sample?
+Let's find out by selecting 460 and 540 female and male units and find out how 
+many friends they have.
+```{r}
+n_male = 460; n_fmale = 540;
+male_friends <- Friends %>% filter(gender == "male");
+female_friends <- Friends %>% anti_join(male_friends, by = "gender");
+male_friends <- male_friends %>% select(friends);
+female_friends <- female_friends %>% select(friends);
+female_friends <- female_friends %>% select(friends);
+male_sample <- male_friends %>% sample_n(n_male);
+female_sample <- female_friends %>% sample_n(n_fmale);
+```
+We then get a summary of the statistics from the samples
+```{r female_sample, male_sample}
+favstats(male_sample$friends); # male sample
+favstats(female_sample$friends); # female sample
+```
+
+We then use a two sided t-test to find if there is a difference in the 
+average number of friends between genders with a .05 significance level
+```{r}
+t.test(female_sample, male_sample)
+```
+The result show that the difference in number of friends on average between 
+genders in the sample is not significant.
+## Plots
+
+You can also embed plots, for example:
+The histogram and boxplot of the number of friends by gender
+```{r echo=FALSE}
+ggplot(data = Friends) + geom_bar(aes(x = friends, col = gender)) + labs(title = "Sampling distribution of number of friends", y = "frequency", x = "number of friends ")
+ggplot(data = Friends) + geom_boxplot(aes(y=friends, col = gender)) + labs(title = "Sampling distribution of number of friends")
+```
+I also plotted the histogram of the distribution of number of friends for each sample
+Male sample plots:
+```{r, echo = F}
+ggplot(data = male_sample) + geom_bar(aes(x = friends), col = "blue")+ labs(title = "Sampling distribution of number of friends for the male sample" , y = "frequency", x = "number of friends ");
+ggplot(data = male_sample) + geom_boxplot(aes(x=friends), col = "lightblue") + labs(x = "number of friends");
+```
+Female sample plots:
+```{r, female_sample, echo=FALSE}
+ggplot(data = female_sample) + geom_bar(aes(x = friends), col = "red")+ labs(title = "Sampling distribution of number of friends for the male sample" , y = "frequency", x = "number of friends ");
+ggplot(data = female_sample) + geom_boxplot(aes(x=friends), col = "pink") + labs(x = "number of friends")
+
+```
+
+
